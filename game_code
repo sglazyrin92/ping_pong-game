@@ -1,0 +1,116 @@
+from pygame import *
+
+window = display.set_mode((700, 500))
+display.set_caption('"Ping Pong" game')
+clock = time.Clock()
+background = transform.scale(image.load('background_pingpong.png'), (700, 500))
+
+font.init()
+font1 = font.SysFont('Arial', 30)
+
+class GameSprite(sprite.Sprite):
+    def __init__(self, player_image, player_x, player_y, player_speed):
+        super().__init__()
+        self.image = transform.scale(image.load(player_image), (25, 99))
+        self.speed = player_speed
+        self.rect = self.image.get_rect()
+        self.rect.x = player_x
+        self.rect.y = player_y
+        self.direction = 'right'
+
+    def reset(self):
+            window.blit(self.image, (self.rect.x, self.rect.y))
+
+class Player(GameSprite):
+    def move(self):
+        keys_pressed = key.get_pressed()
+
+        if keys_pressed[K_w] and self.rect.y > 0:
+            self.rect.y -= self.speed
+
+        if keys_pressed[K_s] and self.rect.y < 400:
+            self.rect.y += self.speed
+
+class Player2(GameSprite):
+    def move(self):
+        keys_pressed = key.get_pressed()
+
+        if keys_pressed[K_UP] and self.rect.y > 0:
+            self.rect.y -= self.speed
+
+        if keys_pressed[K_DOWN] and self.rect.y < 400:
+            self.rect.y += self.speed                
+
+player = Player('platform.png', 50, 30, 20)
+
+player2 = Player2('platform.png', 620, 370, 20)
+
+class Ball(GameSprite):
+    def move(self):
+        global ball_x
+        global ball_y
+        self.rect.x += ball_x
+        self.rect.y += ball_y
+        
+        if self.rect.y > 450 or self.rect.y < 0:
+            ball_y *= -1
+
+        if sprite.collide_rect(player, ball) or sprite.collide_rect(player2, ball):
+            ball_x *= -1
+
+ball = Ball('tennis_ball.png', 100, 100, 5)
+ball.image = transform.scale(ball.image, (50, 50))
+
+ball_x = ball.speed
+
+ball_y = ball.speed
+
+game = True
+
+timer = 200
+
+finish = False
+
+while game == True:
+    for e in event.get():
+        keys_pressed = key.get_pressed()
+        if e.type == QUIT:
+            game = False
+
+    if ball.rect.x > 650:
+        finish = True
+        window.blit(text_leftwin, (230, 200))
+        display.update()
+
+    if ball.rect.x < 0:
+        finish = True
+        window.blit(text_rightwin, (230, 200))
+        display.update()
+
+    if timer == 0:
+        timer = 200
+        if ball_x < 0:
+            ball_x -= 1
+        else:
+            ball_x += 1
+        
+        if ball_y > 0:
+            ball_y += 1
+        else:
+            ball_y -= 1
+    else:
+        timer -= 1
+
+    if finish == False:
+        window.blit(background, (0, 0))
+        player.reset()
+        player2.reset()
+        player.move()
+        player2.move()
+        ball.move()
+        ball.reset()
+        text_leftwin = font1.render('Win! (player1)', 5, (255, 255, 255))
+        text_rightwin = font1.render('Win! (player2)', 5, (255, 255, 255))
+        clock.tick(60)
+        display.update()
+
